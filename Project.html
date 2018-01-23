@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+
+<html>
+
+<script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+  <head>
+    <meta charset="UTF-8">
+    <title>Canvas</title>
+
+    <style type="text/css">
+		body {
+			background-image: url("bg.jpg");
+			background-repeat:no-repeat;
+			background-color: #cccccc;
+		}
+		#canvas-for-game {
+			padding: 0;
+			margin: auto;
+			display: inline-block;
+			width: 600px;
+			border: 5px solid grey;
+		}
+		#Menu {
+			background-color: #cccccc;
+			border: 10px solid black;
+			text-align: center;
+		}
+		#Instructions {
+			background-color: #cccccc;
+			margin-left:auto;
+			margin-right:auto;
+			display: inline-block;
+			border: 5px solid grey;
+			text-align:center;
+			width: 25%;
+			margin-bottom:auto;
+			margin-top:auto;
+		}
+    </style>
+
+  </head>
+
+  <body>
+	<!-- Referenced this video for information on how snake would work https://www.youtube.com/watch?v=xGmXxpIj6vs&t=304s -->
+  
+	<!--- Instructions -->
+	<div id="Instructions" style="display: none;">
+	<h1>Instructions</h1>
+	<p>Red Controls: Arrow keys: up,down,left,right</p>
+	<p>Green Controls: w:up s:down a:left d:right</p>
+	<p>Eat the corresponding colour grow in size! e.g Red Snake eats light red apple!</p>
+	<p>Becareful though, eating the wrong apple might make you smaller</p>
+	<br/>
+	<p>When the either player looses, The winner will be printed to the console and you will be brought back to the menu after 3 seconds to play again!</p>
+	<br/>
+	<p>Enjoy the sound effects, the Background music is called "Snake Charmer" and the eating sound is an apple crunch and wrong apple sound is a choke sound!</p>
+	</div>
+	
+	<!--- appleY2 -->
+	<div id="Menu">
+	<h1>Extreme 2 player snake</h1>
+	<input id="StartButton" type="button" value="Start Game"/>
+	</div>
+	
+	<!--- GameCanvas -->
+    <canvas id="canvas-for-game" style="display: none;"></canvas>
+		
+    <script type="text/javascript">
+	<!--- Audio for game! -->
+	var audio1 = new Audio('bmusic.mp3');
+	var audio2 = new Audio('eat.mp3');
+	var audio3 = new Audio('choke.mp3');
+
+	
+	//Load screen//Menu , when button is clicked hide menu element and show canvas and instructions element
+	$("#StartButton").click(function () {
+        $("#Menu").hide();
+        $("#canvas-for-game").show();
+		$("#Instructions").show();
+    });
+	
+	
+	//On load of page start game//
+	window.onload = function(){
+		gameCanv = document.getElementById("canvas-for-game");
+		gameCanv.width = 600;
+		gameCanv.height = 600;
+		ctx = gameCanv.getContext("2d");
+		
+		//Input for both players
+		document.addEventListener("keydown",keyPush);
+		document.addEventListener("keydown",keyPush2);
+		setInterval(game,1000/15);
+	
+	}
+	
+	//Player 1 Settings
+	xvol = 0;
+	yvol = 0;
+	playerX = 15;
+	playerY = 15;
+	gs = 30;
+	tc = 20;
+	appleX = 15;
+	appleY = 15;
+	trail=[];
+	tail = 2;
+	
+	
+	//Player 2 settings
+	xvol2 = 0;
+	yvol2 = 0;
+	playerX2 = 5;
+	playerY2 = 5;
+	gs2 = 30;
+	tc2 = 20;
+	appleX2 = 10;
+	appleY2 = 10;
+	trail2=[];
+	tail2 = 2;
+	
+	function game(){
+		audio1.play();
+	//Player 1
+		playerX += xvol;
+		playerY += yvol;
+		
+		//If the snake goes left right top or bottom of box reposition to oppisite
+		if(playerX<0){
+			playerX = tc -1;
+		}
+		if(playerX>tc-1){
+			playerX = 0;
+		}
+		if(playerY<0){
+			playerY = tc -1;
+		}
+		if(playerY>tc-1){
+			playerY = 0;
+		}
+	
+	//Player 2
+		playerX2 += xvol2;
+		playerY2 += yvol2;
+		
+		if(playerX2<0){
+			playerX2 = tc2 -1;
+		}
+		if(playerX2>tc2-1){
+			playerX2 = 0;
+		}
+		if(playerY2<0){
+			playerY2 = tc2 -1;
+		}
+		if(playerY2>tc2-1){
+			playerY2 = 0;
+		}
+		
+		//BackGround 
+		ctx.fillStyle = "black";
+		ctx.fillRect(0,0,gameCanv.width,gameCanv.height)
+		
+		//Snake1
+		ctx.fillStyle = "red";
+		for(var i = 0;i<trail.length;i++){
+			ctx.fillRect(trail[i].x*gs,trail[i].y*gs,gs-2,gs-2);
+			//If snake hits itself
+			if(trail[i].x == playerX && trail[i].y ==playerY){
+				tail = 2;
+			}
+			
+		}
+		
+		//Adds to end of array making snake "bigger" for player 1
+		trail.push({x:playerX,y:playerY});
+		
+		while(trail.length>tail){
+			trail.shift();
+		}
+		
+		//Snake2 
+		ctx.fillStyle = "green";
+		for(var i = 0;i<trail2.length;i++){
+			ctx.fillRect(trail2[i].x*gs2,trail2[i].y*gs2,gs2-2,gs2-2);
+			//If snake hits itself
+			if(trail2[i].x == playerX2 && trail2[i].y ==playerY2){
+				tail2 = 2;
+			}
+		}
+		
+		//Adds to end of array making snake "bigger" for player 2
+		trail2.push({x:playerX2,y:playerY2});
+		
+		//Keep adding
+		while(trail2.length>tail2){
+			trail2.shift();
+		}
+		
+		//If player one eats player two apple decrease snake tail
+		if(appleX2 == playerX && appleY2 == playerY){
+			tail--;
+			
+			//Play sound effect
+			audio3.play();
+			
+			//Re-position "apple"
+			appleX2 = Math.floor(Math.random()*tc2);
+			appleY2 = Math.floor(Math.random()*tc2);
+		
+		}
+		
+		//If player two eats player one apple decrease snake tail
+		if(appleX == playerX2 && appleY == playerY2){
+			tail2--;
+			
+			//Play sound effect
+			audio3.play();
+			
+			//Re-position "apple"
+			appleX = Math.floor(Math.random()*tc);
+			appleY = Math.floor(Math.random()*tc);
+		}
+		
+		//If apple1 hits player 1 increase snake tail
+		if(appleX == playerX && appleY == playerY){
+			//Make snake bigger
+			tail++;
+			
+			//Play sound effect
+			audio2.play();
+			
+			//Re-position "apple"
+			appleX = Math.floor(Math.random()*tc);
+			appleY = Math.floor(Math.random()*tc);
+		}
+		
+		
+		//If apple2 hits player 2 increase snake tail
+		if(appleX2 == playerX2 && appleY2 == playerY2){
+			//Make snake bigger
+			tail2++;
+			
+			//Play sound effect
+			audio2.play();
+			
+			//Re-position "apple"
+			appleX2 = Math.floor(Math.random()*tc2);
+			appleY2 = Math.floor(Math.random()*tc2);
+		}
+	
+		
+		//Player 1 "Apple"
+		ctx.fillStyle = "#F09C9C";
+		ctx.fillRect(appleX*gs,appleY*gs,gs-2,gs-2);
+		
+		//Player 2 "Apple"
+		ctx.fillStyle = "#97F697";
+		ctx.fillRect(appleX2*gs2,appleY2*gs2,gs2-2,gs2-2);
+		
+		//Reload page after 3 secs and send back to main page if either tail == 0//
+		if(tail == 0 || tail2 ==0){
+			console.log("Array empty");
+		
+			setInterval(
+			function(){ location.reload(); },
+			3000
+			);
+			
+			//Log to console winner 
+			if(tail == 0){
+				console.log("Player 2 wins!")
+			}
+			else{
+				console.log("Player 1 wins!")
+			}
+		}
+		
+	}
+	
+	//PLAYER 1 Controls
+	function keyPush(evt){
+		switch(evt.keyCode){
+			case 37:
+				xvol = -1;
+				yvol = 0;
+				break;
+			case 38:
+				xvol = 0;
+				yvol = -1;
+				break;
+			case 39:
+				xvol = 1;
+				yvol = 0;
+				break;
+			case 40:
+				xvol = 0;
+				yvol = 1;
+				break;
+		}
+	}
+	
+	//Player2 controls
+	function keyPush2(evt){
+		switch(evt.keyCode){
+			case 65:
+				xvol2 = -1;
+				yvol2 = 0;
+				break;
+			case 87:
+				xvol2 = 0;
+				yvol2 = -1;
+				break;
+			case 68:
+				xvol2 = 1;
+				yvol2 = 0;
+				break;
+			case 83:
+				xvol2 = 0;
+				yvol2 = 1;
+				break;
+		}
+	}
+
+    </script>
+
+  </body>
+
+</html>
